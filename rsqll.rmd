@@ -1,0 +1,73 @@
+---
+title: "Question 1 and 2"
+output: html_notebook
+---
+
+###Find out the Top 5 cities by performance (Higher CTR and Lower CPC. Impressions and Clicks should be reasonable.)
+
+In order to solve this query sqldf library was used. Which helps in writting queries efficiently in R.
+
+Assumptions made:
+
+Best Cities by performance were measured by bestindicator which shows the ratio betwen impression got clicked and the cost associated with it.
+
+Output:
+
+Top 5 cities by performance are:
+
+-Claxton
+
+-Altha
+
+-Port Hueneme
+
+-Dover-Foxcroft
+
+-York Beach
+
+For Clicks:
+
+1. Sum of Clicks= 0 were not considered reasonable
+
+2. Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+
+    1.000    1.000    1.000    2.844    2.000  190.000
+  
+3. Based on the click summary statistics, clicks>= mean were considered reasonable.   
+
+
+```{r}
+Data<-read.csv('D:/Rutgers Study Material/MultivariateData1.csv')
+#Query:1
+library(sqldf)
+a<-sqldf('select City, Sum(Impressions) as Imp,Sum(Clicks) as Clk, Sum(Clicks * CPC) as totalcost, Sum(Clicks) * 1.000/Sum(impressions) as CTR, Sum(Clicks * CPC)/sum(Clicks) as TotalCPC, (Sum(Clicks) * 1.000/Sum(impressions))/(Sum(Clicks * CPC)/sum(Clicks)) as bestindicator  from Data  where impressions>=0 and Clicks>=0 group by City')
+summary(a$Clk)
+b<-sqldf('select City,clk,CTR,TotalCPC,bestindicator from a where clk>=2.844 group by City order by bestindicator desc')
+
+head(b)
+```
+
+### Which Device has the highest and poorest performance ?
+
+Assumptions made:
+
+Performance of the device is measured by higher CTR and lower CPC with reasonable clicks and impression.
+
+Output:
+
+As per the 'bestindicator' we can say Roku performed the best but the impressions and clicks doesn't seem reasonable. 
+
+Best device by performance: Mobile
+
+Worst device by performance: Tablet
+
+```{r}
+#Query: 2
+a<-sqldf('select DeviceType, Sum(Impressions) as Imp,Sum(Clicks) as Clk, Sum(Clicks * CPC) as totalcost, Sum(Clicks) * 1.000/Sum(impressions) as CTR, Sum(Clicks * CPC)/sum(Clicks) as TotalCPC, (Sum(Clicks) * 1.000/Sum(impressions))/(Sum(Clicks * CPC)/sum(Clicks)) as bestindicator  from Data  where impressions>=0 and Clicks>=0 group by DeviceType')
+b<-sqldf('select DeviceType,clk,CTR,TotalCPC,bestindicator from a group by DeviceType order by bestindicator desc')
+head(b)
+```
+
+
+
+
